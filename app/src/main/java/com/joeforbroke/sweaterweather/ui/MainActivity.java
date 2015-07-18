@@ -2,7 +2,7 @@ package com.joeforbroke.sweaterweather.ui;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Color;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
@@ -42,11 +42,16 @@ import java.util.Locale;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 
 public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     public static final String TAG = MainActivity.class.getSimpleName();
+    public static final String DAILY_FORECAST = "DAILY_FORECAST";
+    public static final String HOURLY_FORECAST = "HOURLY_FORECAST";
+    public static final String BACKGROUND_CODE = "BACKGROUND_CODE";
+    public static String CURRENT_LOCATION = "Atlanta, GA";
 
     private Forecast mForecast;
 
@@ -58,29 +63,19 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
     @Bind(R.id.precipValue) TextView mPrecipValue;
     @Bind(R.id.humidityValue) TextView mHumidityValue;
     @Bind(R.id.summaryTV) TextView mSummaryTV;
-    @Bind(R.id.dayLabel1) TextView mDayLabel1;
-    @Bind(R.id.dayLabel2) TextView mDayLabel2;
-    @Bind(R.id.dayLabel3) TextView mDayLabel3;
-    @Bind(R.id.dayLabel4) TextView mDayLabel4;
-    @Bind(R.id.dayLabel5) TextView mDayLabel5;
-    @Bind(R.id.dayLabel6) TextView mDayLabel6;
-    @Bind(R.id.dayLabel7) TextView mDayLabel7;
-    @Bind(R.id.dayIV1) ImageView mDayIV1;
-    @Bind(R.id.dayIV2) ImageView mDayIV2;
-    @Bind(R.id.dayIV3) ImageView mDayIV3;
-    @Bind(R.id.dayIV4) ImageView mDayIV4;
-    @Bind(R.id.dayIV5) ImageView mDayIV5;
-    @Bind(R.id.dayIV6) ImageView mDayIV6;
-    @Bind(R.id.dayIV7) ImageView mDayIV7;
     @Bind(R.id.background) RelativeLayout mBackground;
     @Bind(R.id.refreshIV) ImageView mRefreshIV;
     @Bind(R.id.progressBar) ProgressBar mProgressBar;
+
     GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
     private double mLatitude = 33.4545935;
     private double mLongitude = -84.45128389999999;
     private String mCity = "Atlanta";
     private String mState = "GA";
+    private Drawable mDrawable;
+    private int mBackgroundInt;
+
 
 
 
@@ -127,6 +122,8 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        CURRENT_LOCATION = mCity + ", " + mState;
         mLocationLabel.setText(mCity + ", " + mState);
     }
 
@@ -213,42 +210,32 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         mclothingLabel.setText(current.getWeatherEval());
         mSummaryTV.setText(current.getSummary());
         int start = current.getToday();
-        mDayLabel1.setText(current.getDayList(start));
-        mDayLabel2.setText(current.getDayList(start + 1));
-        mDayLabel3.setText(current.getDayList(start + 2));
-        mDayLabel4.setText(current.getDayList(start + 3));
-        mDayLabel5.setText(current.getDayList(start + 4));
-        mDayLabel6.setText(current.getDayList(start + 5));
-        mDayLabel7.setText(current.getDayList(start + 6));
-        Drawable drawable = getResources().getDrawable(current.getIconId());
-        mMainIconIV.setImageDrawable(drawable);
-        drawable = getResources().getDrawable(current.getWeekIconId(0));
-        mDayIV1.setImageDrawable(drawable);
-        drawable = getResources().getDrawable(current.getWeekIconId(1));
-        mDayIV2.setImageDrawable(drawable);
-        drawable = getResources().getDrawable(current.getWeekIconId(2));
-        mDayIV3.setImageDrawable(drawable);
-        drawable = getResources().getDrawable(current.getWeekIconId(3));
-        mDayIV4.setImageDrawable(drawable);
-        drawable = getResources().getDrawable(current.getWeekIconId(4));
-        mDayIV5.setImageDrawable(drawable);
-        drawable = getResources().getDrawable(current.getWeekIconId(5));
-        mDayIV6.setImageDrawable(drawable);
-        drawable = getResources().getDrawable(current.getWeekIconId(6));
-        mDayIV7.setImageDrawable(drawable);
+
+        mDrawable = getResources().getDrawable(current.getIconId());
+        mMainIconIV.setImageDrawable(mDrawable);
+        mDrawable = getResources().getDrawable(current.getWeekIconId(0));
 
         int checkTemp = current.getTemperature();
         if (checkTemp >= 90) {
-            mBackground.setBackgroundColor(Color.parseColor("#f5372d"));
+            mDrawable = getResources().getDrawable(R.drawable.very_hot);
+            mBackground.setBackground(mDrawable);
+            mBackgroundInt = R.drawable.very_hot;
         } else if (checkTemp > 80 && checkTemp <= 90) {
-            mBackground.setBackgroundColor(Color.parseColor("#ffffa400"));
+            mDrawable = getResources().getDrawable(R.drawable.hot);
+            mBackground.setBackground(mDrawable);
+            mBackgroundInt = R.drawable.hot;
         } else if (checkTemp > 65 && checkTemp <= 80) {
-            mBackground.setBackgroundColor(Color.parseColor("#ff4da6ee"));
+            mDrawable = getResources().getDrawable(R.drawable.moderate);
+            mBackground.setBackground(mDrawable);
+            mBackgroundInt = R.drawable.moderate;
         } else if (checkTemp > 50 && checkTemp <= 65) {
-            mBackground.setBackgroundColor(Color.parseColor("#81aeb1"));
+            mDrawable = getResources().getDrawable(R.drawable.cold);
+            mBackground.setBackground(mDrawable);
+            mBackgroundInt = R.drawable.cold;
         } else{
-            mBackground.setBackgroundColor(Color.parseColor("#4a6e86"));
-
+            mDrawable = getResources().getDrawable(R.drawable.freezing);
+            mBackground.setBackground(mDrawable);
+            mBackgroundInt = R.drawable.freezing;
         }
 
         retrieveLocation();
@@ -279,7 +266,7 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
             day.setSummary(jsonDay.getString("summary"));
             day.setIcon(jsonDay.getString("icon"));
-            day.setTemperatureMex(jsonDay.getDouble("temperatureMax"));
+            day.setTemperatureMax(jsonDay.getDouble("temperatureMax"));
             day.setTime(jsonDay.getLong("time"));
             day.setTimeZone(timezone);
 
@@ -305,7 +292,8 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
             hour.setSummary(jsonHour.getString("summary"));
             hour.setTemperature(jsonHour.getDouble("temperature"));
             hour.setIcon(jsonHour.getString("icon"));
-            hour.setTimezone(timezone);
+            hour.setTime(jsonHour.getLong("time"));
+            hour.setTimeZone(timezone);
 
             hours[i] = hour;
 
@@ -382,5 +370,22 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
         public void onConnectionFailed (ConnectionResult connectionResult){
 
         }
+
+    //Switches to daily activity and sends over background info
+    @OnClick (R.id.dailyBtn)
+    public void startDailyActivity(View view) {
+        Intent intent = new Intent(this, DailyForecastActivity.class);
+        intent.putExtra(BACKGROUND_CODE, mBackgroundInt);
+        intent.putExtra(DAILY_FORECAST, mForecast.getDailyForecast());
+        startActivity(intent);
+    }
+
+    @OnClick (R.id.hourlyBtn)
+    public void startHourlyActivity(View view) {
+        Intent intent = new Intent(this, HourlyForecastActivity.class);
+        intent.putExtra(BACKGROUND_CODE, mBackgroundInt);
+        intent.putExtra(HOURLY_FORECAST, mForecast.getHourlyForecast());
+        startActivity(intent);
+    }
 
 }
